@@ -1,0 +1,13 @@
+{
+  "name": "contract-management-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-errors": "^2.0.0"
+  },
+  "scripts": {
+    "run-server": "node index.js"
+  }
+}
