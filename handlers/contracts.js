@@ -40,6 +40,29 @@ const deleteContract = async (req, res) => {
     }
 }
 
+const updateContract = async (req, res) => {
+    try {
+        const { dbClient } = req
+        const { id, key, value } = req.body
+
+        const updateQuery = `UPDATE ${CONTRACT_TABLE_NAME} SET ${key}='${value}' WHERE id='${id}'`
+        await dbClient.query(updateQuery)
+
+        const responseObject = {
+            status: "OK"
+        }
+
+        res.send(responseObject)
+    } catch (error) {
+        console.error("[Contract]:: Failed to update the contract", error)
+        const responseObject = {
+            status: "ERROR",
+            message: "Something went wrong, Please try again later"
+        }
+        res.send(responseObject)
+    }
+}
+
 const getContractsByField = async (req, res) => {
     try {
         const { dbClient } = req
@@ -170,5 +193,6 @@ module.exports = {
     getContractsByClientName,
     getContractsByStatus,
     getContractsById,
-    getContractsByField
+    getContractsByField,
+    updateContract
 }

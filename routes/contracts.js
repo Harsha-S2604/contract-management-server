@@ -9,6 +9,8 @@ router.get("/search/:value", contractHandlers.getContractsByField)
 router.get("/status/:status", contractHandlers.getContractsByStatus)
 router.get("/client-name/:clientName", contractHandlers.getContractsByClientName)
 
+router.put("/update", contractHandlers.updateContract)
+
 router.post("/create", contractHandlers.addContract)
 
 router.delete("/delete/:id", contractHandlers.deleteContract)
