@@ -5,6 +5,7 @@ const router = express.Router()
 
 router.get("/", contractHandlers.getContracts)
 router.get("/client-name/:clientName", contractHandlers.getContractsByClientName)
+router.get("/status/:status", contractHandlers.getContractsByStatus)
 
 router.post("/create", contractHandlers.addContract)
 

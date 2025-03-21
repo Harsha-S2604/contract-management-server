@@ -85,9 +85,33 @@ const getContractsByClientName = async (req, res) => {
     }
 }
 
+const getContractsByStatus = async (req, res) => {
+    try {
+        const { dbClient } = req
+        const status = req?.params?.status
+        const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE status='${status}'`
+        const contracts = await dbClient.query(searchQuery)
+        const responseObject = {
+            status: "OK",
+            contracts
+        }
+        res.send(responseObject)
+
+    }  catch (error) {
+        console.error("[Contract]:: Failed to get the contracts", error)
+        const responseObject = {
+            status: "ERROR",
+            message: "Something went wrong, Please try again later",
+            contracts: []
+        }
+        res.send(responseObject)
+    }
+}
+
 module.exports = {
     addContract,
     getContracts,
     deleteContract,
-    getContractsByClientName
+    getContractsByClientName,
+    getContractsByStatus
 }
