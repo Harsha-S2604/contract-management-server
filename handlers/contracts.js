@@ -2,10 +2,9 @@ const CONTRACT_TABLE_NAME = "contracts"
 
 const addContract = async (req, res) => {
     try {
-        const { dbClient } = req
         const { contract } = req.body
         const insertQuery = `INSERT INTO ${CONTRACT_TABLE_NAME}(client_name, status, contract_data) ` + "VALUES(${clientName}, ${status}, ${contractData})"
-        await dbClient.query(insertQuery, contract)
+        await appServices.db.query(insertQuery, contract)
         const responseObject = {
             status: "OK"
         }
@@ -22,10 +21,9 @@ const addContract = async (req, res) => {
 
 const deleteContract = async (req, res) => {
     try {
-        const { dbClient } = req
         const contractId = req.params.id
         const deleteQuery = `DELETE FROM ${CONTRACT_TABLE_NAME} WHERE id=${contractId}`
-        await dbClient.query(deleteQuery)
+        await appServices.db.query(deleteQuery)
         const responseObject = {
             status: "OK"
         }
@@ -42,11 +40,10 @@ const deleteContract = async (req, res) => {
 
 const updateContract = async (req, res) => {
     try {
-        const { dbClient } = req
         const { id, key, value } = req.body
 
         const updateQuery = `UPDATE ${CONTRACT_TABLE_NAME} SET ${key}='${value}' WHERE id='${id}'`
-        await dbClient.query(updateQuery)
+        await appServices.db.query(updateQuery)
 
         const responseObject = {
             status: "OK"
@@ -65,7 +62,6 @@ const updateContract = async (req, res) => {
 
 const getContractsByField = async (req, res) => {
     try {
-        const { dbClient } = req
         const { field } = req.body
         const value = req?.params?.value || ''
 
@@ -76,7 +72,7 @@ const getContractsByField = async (req, res) => {
             searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%')`
         }
 
-        const contracts = await dbClient.query(searchQuery)
+        const contracts = await appServices.db.query(searchQuery)
 
         const responseObject = {
             status: "OK",
@@ -96,9 +92,8 @@ const getContractsByField = async (req, res) => {
 
 const getContracts = async (req, res) => {
     try {
-        const { dbClient } = req
         const selectQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME}`
-        const contracts = await dbClient.query(selectQuery)
+        const contracts = await appServices.db.query(selectQuery)
         const responseObject = {
             status: "OK",
             contracts
@@ -117,10 +112,9 @@ const getContracts = async (req, res) => {
 
 const getContractsById = async (req, res) => {
     try {
-        const { dbClient } = req
         const id = req?.params?.id|| ''
         const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${id}'`
-        const contracts = await dbClient.query(searchQuery)
+        const contracts = await appServices.db.query(searchQuery)
 
         const responseObject = {
             status: "OK",
@@ -141,10 +135,9 @@ const getContractsById = async (req, res) => {
 
 const getContractsByClientName = async (req, res) => {
     try {
-        const { dbClient } = req
         const clientName = req?.params?.clientName?.toLowerCase() || ''
         const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${clientName}%')`
-        const contracts = await dbClient.query(searchQuery)
+        const contracts = await appServices.db.query(searchQuery)
 
         const responseObject = {
             status: "OK",
@@ -165,10 +158,9 @@ const getContractsByClientName = async (req, res) => {
 
 const getContractsByStatus = async (req, res) => {
     try {
-        const { dbClient } = req
         const status = req?.params?.status
         const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE status='${status}'`
-        const contracts = await dbClient.query(searchQuery)
+        const contracts = await appServices.db.query(searchQuery)
         const responseObject = {
             status: "OK",
             contracts
