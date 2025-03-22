@@ -13,13 +13,35 @@ const s3Service = {
         })
     },
 
-    uploadFiles: () => {
+    uploadFile: async (file) => {
+        try {
+            const { fileName, fileType, fileBase64 } = file
+            const fileBuffer = Buffer.from(fileBase64, "base64")
 
+            const uploadParams = {
+                Bucket: "contractmanagementdemo",
+                Key: fileName,
+                Body: fileBuffer,
+                ContentType: fileType
+            };
+
+            const fileUploadResponse = await s3Service.s3Client.send(new PutObjectCommand(uploadParams))
+
+            return {
+                status: "OK"
+            }
+
+        } catch (err) {
+            console.error('Error ', err);
+            return {
+                status: "ERROR",
+            }
+        }
     },
 
-    deleteFiles: () => {
+    deleteFile: async () => {
 
-    }
+    },
 }
 
 module.exports = s3Service

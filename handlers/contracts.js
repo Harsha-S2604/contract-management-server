@@ -3,6 +3,12 @@ const CONTRACT_TABLE_NAME = "contracts"
 const addContract = async (req, res) => {
     try {
         const { contract } = req.body
+        contract.file.fileName = `${contract.clientName}/${contract.file.fileName}`
+        const uploadStatus = await appServices.s3.uploadFile(contract.file)
+        if (uploadStatus.status == "ERROR") {
+            throw new Error("Failed to upload the file")
+        }
+
         const insertQuery = `INSERT INTO ${CONTRACT_TABLE_NAME}(client_name, status, contract_data) ` + "VALUES(${clientName}, ${status}, ${contractData})"
         await appServices.db.query(insertQuery, contract)
         const responseObject = {
