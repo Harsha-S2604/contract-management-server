@@ -1,10 +1,13 @@
+const config = require("../config")
+
 const CONTRACT_TABLE_NAME = "contracts"
+const BUCKET_NAME = config.s3.buckets["contracts"]
 
 const addContract = async (req, res) => {
     try {
         const { contract } = req.body
         contract.file.fileName = `${contract.clientName}/${contract.file.fileName}`
-        const uploadStatus = await appServices.s3.uploadFile(contract.file)
+        const uploadStatus = await appServices.s3.uploadFile(BUCKET_NAME, contract.file)
         if (uploadStatus.status == "ERROR") {
             throw new Error("Failed to upload the file")
         }
@@ -28,6 +31,19 @@ const addContract = async (req, res) => {
 const deleteContract = async (req, res) => {
     try {
         const contractId = req.params.id
+        const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${contractId}'`
+        const contracts = await appServices.db.query(searchQuery)
+        if (!contracts || !contracts.length) {
+            throw new Error("No such contract exists")
+        }
+
+        const contract = contracts[0]
+        const fileName = `${contract.client_name}/${contract.contract_data}`
+        const deleteResponse = await appServices.s3.deleteFile(BUCKET_NAME, fileName)
+        if (deleteResponse.status == "ERROR") {
+            throw new Error("Failed to delete the file")
+        }
+
         const deleteQuery = `DELETE FROM ${CONTRACT_TABLE_NAME} WHERE id=${contractId}`
         await appServices.db.query(deleteQuery)
         const responseObject = {
