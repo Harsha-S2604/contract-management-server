@@ -62,8 +62,38 @@ const deleteContract = async (req, res) => {
 
 const updateContract = async (req, res) => {
     try {
-        const { id, key, value } = req.body
+        let { id, key, value } = req.body
 
+        if (key === "contract_data") {
+            const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${id}'`
+            const contracts = await appServices.db.query(searchQuery)
+            if (!contracts || !contracts.length) {
+                throw new Error("No such contract exists")
+            }
+
+            const contract = contracts[0]
+            const fileToBeReplacedWith = `${contract.client_name}/${contract.contract_data}`
+            const originalFileName = value.fileName
+            value.fileName = `${contract.client_name}/${value.fileName}`
+
+            const uploadPromise = appServices.s3.uploadFile(BUCKET_NAME, value)
+            const promises = [uploadPromise]
+
+            if (fileToBeReplacedWith !== value.fileName) {
+                const deletePromise = appServices.s3.deleteFile(BUCKET_NAME, fileToBeReplacedWith)
+                promises.push(deletePromise)
+            }
+
+            const [uploadResponse, deleteResponse] = await Promise.all(promises)
+            console.log("originalFileName", originalFileName, value)
+
+            if (uploadResponse.status == "ERROR") {
+                throw new Error("Failed to upload the file")
+            }
+
+            value = originalFileName
+        }
+        
         const updateQuery = `UPDATE ${CONTRACT_TABLE_NAME} SET ${key}='${value}' WHERE id='${id}'`
         await appServices.db.query(updateQuery)
 
