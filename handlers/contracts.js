@@ -41,7 +41,7 @@ const deleteContract = async (req, res) => {
         const fileName = `${contract.client_name}/${contract.contract_data}`
         const deleteResponse = await appServices.s3.deleteFile(BUCKET_NAME, fileName)
         if (deleteResponse.status == "ERROR") {
-            throw new Error("Failed to delete the file")
+            throw new Error("Failed to delete the file from S3")
         }
 
         const deleteQuery = `DELETE FROM ${CONTRACT_TABLE_NAME} WHERE id=${contractId}`

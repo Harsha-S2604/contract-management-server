@@ -51,8 +51,7 @@ const s3Service = {
 
             const command = new DeleteObjectCommand(deleteParams)
             const response = await s3Service.s3Client.send(command)
-
-            if (!response || response.$metadata.httpStatusCode !== 200) {
+            if (!response) {
                 throw new Error("Failed to delete the object", response)
             }
 
