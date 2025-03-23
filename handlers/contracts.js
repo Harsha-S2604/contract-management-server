@@ -144,11 +144,21 @@ const getContractsByField = async (req, res) => {
 
 const getContracts = async (req, res) => {
     try {
-        const selectQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME}`
-        const contracts = await appServices.db.query(selectQuery)
+        const page = req.query.page || 1
+        const pageSize = req.query.pageSize || 5
+        const offset = (page - 1) * pageSize
+
+        const countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME}`
+        const selectQueryPage = `SELECT * FROM ${CONTRACT_TABLE_NAME} ORDER BY id LIMIT ${pageSize} OFFSET ${offset}`
+
+        const countPromise = appServices.db.query(countQuery) 
+        const contractsPromise = appServices.db.query(selectQueryPage)
+        const [count, contracts] = await Promise.all([countPromise, contractsPromise])
+
         const responseObject = {
             status: "OK",
-            contracts
+            contracts,
+            count: parseInt(count[0].count)
         }
         res.send(responseObject)
     } catch (error) {
