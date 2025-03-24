@@ -5,6 +5,9 @@ const BUCKET_NAME = config.s3.buckets["contracts"]
 
 const addContract = async (req, res) => {
     try {
+        const page = req.query.page || 1
+        const pageSize = req.query.pageSize || 5
+
         const { contract } = req.body
         contract.file.fileName = `${contract.clientName}/${contract.file.fileName}`
         const uploadStatus = await appServices.s3.uploadFile(BUCKET_NAME, contract.file)
@@ -17,6 +20,8 @@ const addContract = async (req, res) => {
         const responseObject = {
             status: "OK"
         }
+
+        emitSocketEventForContracts(page, pageSize)
         res.send(responseObject)
     } catch (error) {
         console.error("[Contract]:: Failed to add the contract", error)
@@ -30,6 +35,9 @@ const addContract = async (req, res) => {
 
 const deleteContract = async (req, res) => {
     try {
+        const page = req.query.page || 1
+        const pageSize = req.query.pageSize || 5
+
         const contractId = req.params.id
         const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${contractId}'`
         const contracts = await appServices.db.query(searchQuery)
@@ -49,6 +57,7 @@ const deleteContract = async (req, res) => {
         const responseObject = {
             status: "OK"
         }
+        emitSocketEventForContracts(page, pageSize)
         res.send(responseObject)
     } catch (error) {
         console.error("[Contract]:: Failed to delete the contract", error)
@@ -62,6 +71,9 @@ const deleteContract = async (req, res) => {
 
 const updateContract = async (req, res) => {
     try {
+        const page = req.query.page || 1
+        const pageSize = req.query.pageSize || 5
+
         let { id, key, value } = req.body
 
         if (key === "contract_data") {
@@ -93,7 +105,7 @@ const updateContract = async (req, res) => {
 
             value = originalFileName
         }
-        
+
         const updateQuery = `UPDATE ${CONTRACT_TABLE_NAME} SET ${key}='${value}' WHERE id='${id}'`
         await appServices.db.query(updateQuery)
 
@@ -101,6 +113,7 @@ const updateContract = async (req, res) => {
             status: "OK"
         }
 
+        emitSocketEventForContracts(page, pageSize)
         res.send(responseObject)
     } catch (error) {
         console.error("[Contract]:: Failed to update the contract", error)
@@ -151,7 +164,7 @@ const getContracts = async (req, res) => {
         const countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME}`
         const selectQueryPage = `SELECT * FROM ${CONTRACT_TABLE_NAME} ORDER BY id LIMIT ${pageSize} OFFSET ${offset}`
 
-        const countPromise = appServices.db.query(countQuery) 
+        const countPromise = appServices.db.query(countQuery)
         const contractsPromise = appServices.db.query(selectQueryPage)
         const [count, contracts] = await Promise.all([countPromise, contractsPromise])
 
@@ -174,7 +187,7 @@ const getContracts = async (req, res) => {
 
 const getContractsById = async (req, res) => {
     try {
-        const id = req?.params?.id|| ''
+        const id = req?.params?.id || ''
         const searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${id}'`
         const contracts = await appServices.db.query(searchQuery)
 
@@ -184,7 +197,7 @@ const getContractsById = async (req, res) => {
         }
         res.send(responseObject)
 
-    }  catch (error) {
+    } catch (error) {
         console.error("[Contract]:: Failed to get the contracts", error)
         const responseObject = {
             status: "ERROR",
@@ -207,7 +220,7 @@ const getContractsByClientName = async (req, res) => {
         }
         res.send(responseObject)
 
-    }  catch (error) {
+    } catch (error) {
         console.error("[Contract]:: Failed to get the contracts", error)
         const responseObject = {
             status: "ERROR",
@@ -229,7 +242,7 @@ const getContractsByStatus = async (req, res) => {
         }
         res.send(responseObject)
 
-    }  catch (error) {
+    } catch (error) {
         console.error("[Contract]:: Failed to get the contracts", error)
         const responseObject = {
             status: "ERROR",
@@ -238,6 +251,38 @@ const getContractsByStatus = async (req, res) => {
         }
         res.send(responseObject)
     }
+}
+
+const emitSocketEventForContracts = async (page, pageSize) => {
+    let responseObject = {}
+    try {
+        const offset = (page - 1) * pageSize
+
+        const countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME}`
+        const selectQueryPage = `SELECT * FROM ${CONTRACT_TABLE_NAME} ORDER BY id LIMIT ${pageSize} OFFSET ${offset}`
+
+        const countPromise = appServices.db.query(countQuery)
+        const contractsPromise = appServices.db.query(selectQueryPage)
+        const [count, contracts] = await Promise.all([countPromise, contractsPromise])
+
+        responseObject = {
+            status: "OK",
+            contracts,
+            count: parseInt(count[0].count)
+        }
+
+    } catch (error) {
+        responseObject = {
+            status: "ERROR",
+            contracts: [],
+            count: 0
+        }
+
+    }
+
+    appServices.socket.emit("dataUpdated", responseObject)
+
+    
 }
 
 module.exports = {

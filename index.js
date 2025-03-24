@@ -2,7 +2,6 @@ require("dotenv").config({ path: `.env.${process.env.NODE_ENV || 'development'}`
 
 const express = require("express")
 const http = require('http');
-const { Server: WebSocketServer } = require("socket.io");
 const cors = require("cors")
 
 const contractRoutes = require("./routes/contracts")
@@ -17,6 +16,6 @@ app.use(express.json())
 app.use('/contracts', contractRoutes)
 
 server.listen(port, () => {
-    services.init()
+    services.init(server)
     global.appServices = services
 })
