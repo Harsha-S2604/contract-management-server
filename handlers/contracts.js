@@ -143,6 +143,9 @@ const getContractsByField = async (req, res) => {
         } else if (key == "clientName") {
             countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%')`
             searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%') ORDER BY id LIMIT ${pageSize} OFFSET ${offset};`
+        } else if (key == "status") {
+            countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME} WHERE status='${value}'`
+            searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE status='${value}' ORDER BY id LIMIT ${pageSize} OFFSET ${offset};`
         }
 
         const contractPromise = appServices.db.query(searchQuery)
