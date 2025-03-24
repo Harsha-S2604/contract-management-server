@@ -8,6 +8,7 @@ router.get("/id/:id", contractHandlers.getContractsById)
 router.get("/search/:key/:value", contractHandlers.getContractsByField)
 router.get("/status/:status", contractHandlers.getContractsByStatus)
 router.get("/client-name/:clientName", contractHandlers.getContractsByClientName)
+router.get("/download/:clientName/:fileName", contractHandlers.downloadFile)
 
 router.put("/update", contractHandlers.updateContract)
 

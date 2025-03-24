@@ -1,4 +1,4 @@
-const { S3Client, DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command, HeadObjectCommand, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3')
+const { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3')
 
 const s3Service = {
     s3Client: null,
@@ -66,6 +66,33 @@ const s3Service = {
             }
         }
     },
+
+    getFile: async (bucketName, fileName) => {
+        try {
+            const getParams = {
+                Bucket: bucketName,
+                Key: fileName,
+            }
+
+            const command = new GetObjectCommand(getParams)
+            const fileObj = await s3Service.s3Client.send(command)
+
+            if (!fileObj) {
+                throw new Error("Failed to get the object", fileObj)
+            }
+
+            return {
+                status: "OK",
+                fileObj
+            }
+
+        } catch (err) {
+            console.error('[S3]:: Error getting the file', err);
+            return {
+                status: "ERROR",
+            }
+        }
+    }
 }
 
 module.exports = s3Service

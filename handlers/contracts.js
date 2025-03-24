@@ -269,6 +269,33 @@ const getContractsByStatus = async (req, res) => {
     }
 }
 
+const downloadFile = async (req, res) => {
+    try {
+        const { clientName, fileName } = req.params
+        const file = `${clientName}/${fileName}`
+        const fileResponse = await appServices.s3.getFile(BUCKET_NAME, file)
+        if (fileResponse.status == "ERROR") {
+            throw new Error("Failed to get the file")
+        }
+
+        const { fileObj } = fileResponse
+
+        res.setHeader('Content-Type', fileObj.ContentType)
+        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`)
+        res.setHeader('Content-Length', fileObj.ContentLength)
+
+        fileObj.Body.pipe(res)
+    } catch (error) {
+        console.error("[Contract]:: Failed to get the contracts", error)
+        const responseObject = {
+            status: "ERROR",
+            message: "Something went wrong, Please try again later",
+            contracts: []
+        }
+        res.send(responseObject)
+    }
+}
+
 const emitSocketEventForContracts = async (page, pageSize) => {
     let responseObject = {}
     try {
@@ -301,6 +328,8 @@ const emitSocketEventForContracts = async (page, pageSize) => {
     
 }
 
+
+
 module.exports = {
     addContract,
     getContracts,
@@ -309,5 +338,6 @@ module.exports = {
     getContractsByStatus,
     getContractsById,
     getContractsByField,
-    updateContract
+    updateContract,
+    downloadFile
 }
