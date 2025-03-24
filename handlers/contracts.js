@@ -127,21 +127,33 @@ const updateContract = async (req, res) => {
 
 const getContractsByField = async (req, res) => {
     try {
-        const { field } = req.body
+        const key = req?.params?.key
         const value = req?.params?.value || ''
 
+        const page = req.query.page || 1
+        const pageSize = req.query.pageSize || 5
+        const offset = (page - 1) * pageSize
+
         let searchQuery = ''
-        if (field == "id") {
-            searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${value}'`
-        } else if (field == "clientName") {
-            searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%')`
+        let countQuery = ''
+
+        if (key == "id") {
+            countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME} WHERE id='${value}'`
+            searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE id='${value}' ORDER BY id LIMIT ${pageSize} OFFSET ${offset};`
+        } else if (key == "clientName") {
+            countQuery = `SELECT COUNT(*) FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%')`
+            searchQuery = `SELECT * FROM ${CONTRACT_TABLE_NAME} WHERE (lower(client_name) LIKE '%${value}%') ORDER BY id LIMIT ${pageSize} OFFSET ${offset};`
         }
 
-        const contracts = await appServices.db.query(searchQuery)
+        const contractPromise = appServices.db.query(searchQuery)
+        const countPromise = appServices.db.query(countQuery)
+
+        const [contracts, count] = await Promise.all([contractPromise, countPromise])
 
         const responseObject = {
             status: "OK",
-            contracts
+            contracts,
+            count: parseInt(count[0].count)
         }
         res.send(responseObject)
     } catch (error) {
@@ -149,7 +161,8 @@ const getContractsByField = async (req, res) => {
         const responseObject = {
             status: "ERROR",
             message: "Something went wrong, Please try again later",
-            contracts: []
+            contracts: [],
+            count: 0
         }
         res.send(responseObject)
     }

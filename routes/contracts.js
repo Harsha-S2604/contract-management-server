@@ -5,7 +5,7 @@ const router = express.Router()
 
 router.get("/", contractHandlers.getContracts)
 router.get("/id/:id", contractHandlers.getContractsById)
-router.get("/search/:value", contractHandlers.getContractsByField)
+router.get("/search/:key/:value", contractHandlers.getContractsByField)
 router.get("/status/:status", contractHandlers.getContractsByStatus)
 router.get("/client-name/:clientName", contractHandlers.getContractsByClientName)
 
