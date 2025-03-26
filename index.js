@@ -11,7 +11,9 @@ const app = express()
 const server = http.createServer(app);
 const port = process.env.SERVER_PORT || 3000
 
-app.use(cors())
+app.use(cors({
+    origin: '*'
+}))
 app.use(express.json())
 app.use('/contracts', contractRoutes)
 
