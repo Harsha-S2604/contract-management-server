@@ -13,7 +13,7 @@
     "socket.io": "^4.8.1"
   },
   "scripts": {
-    "run-server": "node index.js",
+    "run-server": "pm2 start index.js --name contract-management-server",
     "run-dev-server": "NODE_ENV=development node index.js",
     "run-prod-server": "NODE_ENV=production node index.js"
   }
